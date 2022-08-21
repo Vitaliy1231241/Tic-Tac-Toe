@@ -1,0 +1,220 @@
+#include <iostream>
+#include <windows.h>
+#include <conio.h>
+#include <cstdlib>
+#include <ctime>
+using namespace std;
+
+
+
+int main() {
+	srand(time(NULL));
+	// Заполнение информации о курсоре и установка этого курсора
+	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+	CONSOLE_CURSOR_INFO ci;
+	ci.dwSize = 100;
+	ci.bVisible = true;
+	SetConsoleCursorInfo(hOut, &ci);
+
+	COORD start = { 33,5 };
+	int move[3][3][2] = {
+		{{35,7}, {39,7}, {43,7}},
+		{{35,11}, {39,11}, {43,11}},
+		{{35,15}, {39,15}, {43,15}}
+	};
+
+	int field[13][13] = { 0 };
+	for (int i = 0; i < 13; ++i) {
+		SetConsoleCursorPosition(hOut, start);
+		for (int j = 0; j < 13; ++j) {
+			if (i == 0 && j == 0) field[i][j] = 201;
+			else if (i == 0 && j == 12) field[i][j] = 187;
+			else if (i == 12 && j == 0) field[i][j] = 200;
+			else if (i == 12 && j == 12) field[i][j] = 188;
+			else if (i == 0 && j % 4 == 0) field[i][j] = 203;
+			else if (i % 4 == 0 && j % 4 != 0) field[i][j] = 205;
+			else if (i == 12 && j % 4 == 0) field[i][j] = 202;
+			else if (j == 0 && i % 4 == 0) field[i][j] = 204;
+			else if (j % 4 == 0 && i % 4 != 0) field[i][j] = 186;
+			else if (j == 12 && i % 4 == 0) field[i][j] = 185;
+			else if (i % 4 == 0 && j % 4 == 0) field[i][j] = 206;
+			else field[i][j] = 255;
+		}
+	}
+
+	for (int i = 0; i < 13; ++i) {
+		SetConsoleCursorPosition(hOut, start);
+		for (int j = 0; j < 13; ++j) {
+			cout << (char)field[i][j];
+		}
+		cout << endl;
+		start.Y++;
+	}
+
+	int game[3][3] = { 0 };
+	int indexRow, indexCol;
+
+	COORD c = { 39,11 };
+	COORD v = { 36,3 };
+	int x = _getch(); // код клавиши
+	SetConsoleCursorPosition(hOut, c);
+	while (1) {
+		x = _getch();// номер стрелки
+		switch (x) {//
+		case 75: // left
+			if (c.X == 35) {
+				break;
+			}
+			else {
+				c.X -= 4;
+			}
+			break;
+		case 77: // right
+			if (c.X == 43) {
+				break;
+			}
+			else {
+				c.X += 4;
+			}
+			break;
+		case 72: // top
+			if (c.Y == 7) {
+				break;
+			}
+			else {
+				c.Y -= 4;
+			}
+			break;
+		case 80: // down
+			if (c.Y == 15) {
+				break;
+			}
+			else {
+				c.Y += 4;
+			}
+			break;
+		case 32:
+			static int count = 0;
+			static bool temp = true;
+			if (temp) {
+				for (int i = 0; i < 3; ++i) {
+					for (int j = 0; j < 3; ++j) {
+						if (game[i][j] == 0 && move[i][j][0] == c.X && move[i][j][1] == c.Y) {
+							cout << "X";
+							game[i][j] = 1;
+							count++;
+
+
+							for (int j = 0; j < 3; j++)
+							{
+								if (game[0][j] == 1 && game[1][j] == 1 && game[2][j] == 1) {
+									ci.bVisible = false;
+									SetConsoleCursorInfo(hOut, &ci);
+									SetConsoleCursorPosition(hOut, v);
+									cout << "You win";
+									temp = false;
+									break;
+								}
+								else if (game[j][0] == 1 && game[j][1] == 1 && game[j][2] == 1) {
+									ci.bVisible = false;
+									SetConsoleCursorInfo(hOut, &ci);
+									SetConsoleCursorPosition(hOut, v);
+									cout << "You win";
+									temp = false;
+									break;
+								}
+								else if (game[0][0] == 1 && game[1][1] == 1 && game[2][2] == 1 || game[0][2] == 1 && game[1][1] == 1 && game[2][0] == 1) {
+									ci.bVisible = false;
+									SetConsoleCursorInfo(hOut, &ci);
+									SetConsoleCursorPosition(hOut, v);
+									cout << "You win";
+									temp = false;
+									break;
+								}
+							}
+							if (count == 9 && temp == true) {
+								ci.bVisible = false;
+								SetConsoleCursorInfo(hOut, &ci);
+								SetConsoleCursorPosition(hOut, v);
+								cout << "Draw!!!";
+								temp = false;
+							}
+
+
+							if (temp) {
+								do {
+									bool t = true;
+									for (int j = 0; j < 3; j++)
+									{
+										if (game[0][j] == 1 && game[1][j] == 1 && game[2][j] == 0) { indexRow = 2; indexCol = j; t = false; }
+										else if (game[0][j] == 1 && game[1][j] == 0 && game[2][j] == 1) { indexRow = 1; indexCol = j; t = false; }
+										else if (game[0][j] == 0 && game[1][j] == 1 && game[2][j] == 1) { indexRow = 0; indexCol = j; t = false; }
+
+										else if (game[j][0] == 1 && game[j][1] == 1 && game[j][2] == 0) { indexRow = j; indexCol = 2; t = false; }
+										else if (game[j][0] == 1 && game[j][1] == 0 && game[j][2] == 1) { indexRow = j; indexCol = 1; t = false; }
+										else if (game[j][0] == 0 && game[j][1] == 1 && game[j][2] == 1) { indexRow = j; indexCol = 0; t = false; }
+
+										else if (game[0][0] == 0 && game[1][1] == 1 && game[2][2] == 1) { indexRow = 0; indexCol = 0; t = false; }
+										else if (game[0][0] == 1 && game[1][1] == 0 && game[2][2] == 1) { indexRow = 1; indexCol = 1; t = false; }
+										else if (game[0][0] == 1 && game[1][1] == 1 && game[2][2] == 0) { indexRow = 2; indexCol = 2; t = false; }
+										else if (game[0][2] == 0 && game[1][1] == 1 && game[2][0] == 1) { indexRow = 0; indexCol = 2; t = false; }
+										else if (game[0][2] == 1 && game[1][1] == 0 && game[2][0] == 1) { indexRow = 1; indexCol = 1; t = false; }
+										else if (game[0][2] == 1 && game[1][1] == 1 && game[2][0] == 0) { indexRow = 2; indexCol = 0; t = false; }
+									}
+									if (t == true) { indexRow = rand() % 3; indexCol = rand() % 3; }
+								} while (game[indexRow][indexCol] != 0);
+								if (game[indexRow][indexCol] == 0) {
+									c.X = move[indexRow][indexCol][0];
+									c.Y = move[indexRow][indexCol][1];
+									SetConsoleCursorPosition(hOut, c);
+									cout << "0";
+									for (int i = 0; i < 3; ++i) {
+										for (int j = 0; j < 3; ++j) {
+											if (move[i][j][0] == c.X && move[i][j][1] == c.Y) {
+												game[i][j] = 2;
+												count++;
+											}
+										}
+									}
+								}
+
+
+								for (int j = 0; j < 3; j++)
+								{
+									if (game[0][j] == 2 && game[1][j] == 2 && game[2][j] == 2) {
+										ci.bVisible = false;
+										SetConsoleCursorInfo(hOut, &ci);
+										SetConsoleCursorPosition(hOut, v);
+										cout << "You lose";
+										temp = false;
+										break;
+									}
+									else if (game[j][0] == 2 && game[j][1] == 2 && game[j][2] == 2) {
+										ci.bVisible = false;
+										SetConsoleCursorInfo(hOut, &ci);
+										SetConsoleCursorPosition(hOut, v);
+										cout << "You lose";
+										temp = false;
+										break;
+									}
+									else if (game[0][0] == 2 && game[1][1] == 2 && game[2][2] == 2 || game[0][2] == 2 && game[1][1] == 2 && game[2][0] == 2) {
+										ci.bVisible = false;
+										SetConsoleCursorInfo(hOut, &ci);
+										SetConsoleCursorPosition(hOut, v);
+										cout << "You lose";
+										temp = false;
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+
+		}
+		SetConsoleCursorPosition(hOut, c);
+	}
+
+	return 0;
+}
